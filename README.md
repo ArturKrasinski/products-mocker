@@ -63,5 +63,14 @@ Example of item:
     "image": "http://img.bbystatic.com/BestBuy_US/images/products/4390/43900_sa.jpg"
   }
   ```
-
-  #### Notice we remove url in our sample !
+  U could change others env which will affect on script behavior:
+  ```
+  const {
+    MAX_ITEMS = 1000,
+    CREATE_SAMPLE = false,
+    FLAT_CATEGORY = true,
+    SKU_TO_ID = true,
+    REMOVE_URL = true,
+  } = env;
+  ```
+  #### Notice - on default we remove url, replace sku by id and make category flat (array to single id) in our sample !

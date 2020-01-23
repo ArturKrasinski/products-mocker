@@ -8,7 +8,13 @@ const sampleFileName = 'data/products-sample.json';
 
 // environment config
 const { env = {} } = process;
-const { MAX_ITEMS = 5, CREATE_SAMPLE = false } = env;
+const {
+  MAX_ITEMS = 1000,
+  CREATE_SAMPLE = false,
+  FLAT_CATEGORY = true,
+  SKU_TO_ID = true,
+  REMOVE_URL = true,
+} = env;
 
 const deleteFolderRecursive = function(sourcePath) {
   if (fs.existsSync(sourcePath)) {
@@ -37,7 +43,7 @@ if (!fs.existsSync(dirTemp)){
 }
 let sourceData = fs.readFileSync(sourceFileName);
 let sourceProducts = JSON.parse(sourceData);
-const products = CREATE_SAMPLE ? sourceProducts.slice(1, MAX_ITEMS) : sourceProducts;
+const products = CREATE_SAMPLE ? sourceProducts.slice(0, MAX_ITEMS) : sourceProducts;
 
 const downloadActions = [];
 const processedProducts = [];
@@ -59,14 +65,39 @@ products.forEach((product) => {
     });
 
     if (CREATE_SAMPLE) {
-      //Remove url`s from products
-      const { url: ignore, ...productWithoutUrl } = product;
-      processedProducts.push({
-        ...productWithoutUrl,
+      let productToSave = {
+        ...product,
         image: fileName,
-      })
+      };
+
+      if (SKU_TO_ID) {
+        //Replace sku by id
+        const { sku: ignore, ...productWithoutSku } = productToSave;
+        productWithoutSku.id = productToSave.sku;
+        productToSave = productWithoutSku;
+      }
+
+      if (REMOVE_URL) {
+        //Remove url`s from products
+        const { url: ignore, ...productWithoutUrl } = productToSave;
+        productToSave = productWithoutUrl;
+      }
+
+      if (FLAT_CATEGORY) {
+        //Flat category
+        const { category, ...productWithoutCategory } = productToSave;
+        const randomCategoryId = category[Math.floor(Math.random()*category.length)].id;
+        productToSave = {
+          ...productWithoutCategory,
+          category: randomCategoryId,
+        };
+      }
+
+      processedProducts.push(productToSave);
     }
 });
+
+console.log(processedProducts);
 
 async function getSyncDownloadResults(arrayOfPromisesActions) {
   const results = [];
